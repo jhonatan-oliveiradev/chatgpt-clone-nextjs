@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
 import Image from "next/image";
 import { Inter } from "@next/font/google";
+import { useState } from "react";
 
 const Hero = () => {
 	return (
@@ -38,13 +38,13 @@ const Hero = () => {
 					</h2>
 					<ul className="flex flex-col gap-3.5 w-full sm:max-w-md m-auto">
 						<button className="w-full bg-gray-50 dark:bg-white/5 p-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-900">
-							{'"Explain quantum computing in simple terms" →'}
+							{'"Explain quantum computing in simple terms"→'}
 						</button>
 						<button className="w-full bg-gray-50 dark:bg-white/5 p-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-900">
-							{'"Got any creative ideas for a 10 year old’s birthday?" →'}
+							{'"Got any creative ideas for a 10 year old’s birthday?"→'}
 						</button>
 						<button className="w-full bg-gray-50 dark:bg-white/5 p-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-900">
-							{'"How do I make an HTTP request in Javascript?" →'}
+							{'"How do I make an HTTP request in Javascript?"→'}
 						</button>
 					</ul>
 				</div>
@@ -120,7 +120,6 @@ type ChatProps = {
 	requestMessage: string;
 	responseMessage: string;
 };
-
 const Chat = ({ requestMessage, responseMessage }: ChatProps) => {
 	return (
 		<>
@@ -130,7 +129,13 @@ const Chat = ({ requestMessage, responseMessage }: ChatProps) => {
 						<div className="relative flex">
 							<span className="box-sizing: border-box; display: inline-block; overflow: hidden; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; position: relative; max-width: 100%;">
 								<span className="box-sizing: border-box; display: block; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; max-width: 100%;">
-									<Image width={40} height={40} src="foto2.png" alt="User" />
+									<Image
+										width={40}
+										height={40}
+										src="/images/foto2.png"
+										alt="User"
+										className="rounded-full"
+									/>
 								</span>
 							</span>
 						</div>
@@ -186,10 +191,10 @@ export default function Home() {
 		e.preventDefault();
 		setResponseMessage("");
 		setLoading(true);
-		// criar uma chamada de API do tipo POST para o endereço http://localhost:3000/api/gpt3 com o objeto body com a propriedade prompt
-		// o valor da proprieadade prompt deve ser o valor da variável requestMessage
+		// criar uma chamada api do tipo post para o endereço http://localhost:3000/api/gpt3 com objeto body com a propriedade prompt
+		// o valor da propriedade prompt deve ser o valor da variável requestMessage
 
-		const response = await fetch("http://localhost:3000/api/gpt3", {
+		const response = await fetch("/api/gpt3", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -204,38 +209,28 @@ export default function Home() {
 		const data = response.body;
 		if (!data) return;
 
+		const reader = data.getReader();
+		const decoder = new TextDecoder();
+
+		let done = false;
+		while (!done) {
+			const { value, done: readerDone } = await reader.read();
+			done = readerDone;
+			const chunkValue = decoder.decode(value);
+			setResponseMessage((prev) => prev + chunkValue);
+		}
 		setLoading(false);
 	};
 
 	return (
 		<main className="relative h-full w-full transition-width flex flex-col overflow-hidden items-stretch flex-1">
-			<div className="overflow-hidden flex-1">
+			<div className="flex-1 overflow-hidden">
 				<div className="h-full dark:bg-gray-800">
 					<div className="flex flex-col items-center text-sm h-full dark:bg-gray-800">
 						{responseMessage === "" ? (
 							loading ? (
 								<div className="flex flex-col items-center justify-center h-full text-gray-100 font-bold">
-									<svg
-										className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-										xmlns="http://www.w3.org/2000/svg"
-										fill="none"
-										viewBox="0 0 24 24"
-									>
-										<circle
-											className="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											stroke-width="4"
-										></circle>
-										<path
-											className="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8v8H4z"
-										></path>
-									</svg>
-									Generating response...
+									Carregando...
 								</div>
 							) : (
 								<Hero />
@@ -246,7 +241,6 @@ export default function Home() {
 								responseMessage={responseMessage}
 							/>
 						)}
-						<div className="w-full h-32 md:h-48 flex-shrink-0"></div>
 					</div>
 				</div>
 			</div>
@@ -255,19 +249,18 @@ export default function Home() {
 					""
 				) : (
 					<form
-						onSubmit={(e) => generateResponse(e)}
 						className="stretch mx-2 flex flex-row gap-3 pt-2 last:mb-2 md:last:mb-6 lg:mx-auto lg:max-w-3xl lg:pt-6"
+						onSubmit={(e) => generateResponse(e)}
 					>
 						<div className="relative flex h-full flex-1 md:flex-col">
 							<div className="flex ml-1 mt-1.5 md:w-full md:m-auto md:mb-2 gap-0 md:gap-2 justify-center"></div>
 							<div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative border border-black/10 bg-white dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
 								<input
-									type="text"
-									placeholder=""
 									className="m-0 w-full outline-none resize-none border-0 bg-transparent p-0 pl-2 pr-7 focus:ring-0 focus-visible:ring-0 dark:bg-transparent md:pl-0"
+									type="text"
 									value={requestMessage}
 									onChange={(e) => setRequestMessage(e.target.value)}
-								/>
+								></input>
 								<button className="absolute p-1 rounded-md text-gray-500 bottom-1.5 right-1 md:bottom-2.5 md:right-2 hover:bg-gray-100 dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent">
 									<svg
 										stroke="currentColor"
@@ -289,6 +282,7 @@ export default function Home() {
 						</div>
 					</form>
 				)}
+
 				<div className="px-3 pt-2 pb-3 text-center text-xs text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
 					<a
 						href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes"
@@ -298,10 +292,8 @@ export default function Home() {
 					>
 						ChatGPT Jan 30 Version
 					</a>
-					. &nbsp;
-					{
-						'"Free Research Preview. Our goal is to make AI systems more natural and safe to interact with. Your feedback will help us improve."'
-					}
+					. Free Research Preview. Our goal is to make AI systems more natural
+					and safe to interact with. Your feedback will help us improve.
 				</div>
 			</div>
 		</main>
